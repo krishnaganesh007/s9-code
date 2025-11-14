@@ -98,7 +98,8 @@ class AgentLoop:
                             )
                             log("loop", f"📨 Forwarding intermediate result to next step:\n{self.context.user_input_override}\n\n")
                             log("loop", f"🔁 Continuing based on FURTHER_PROCESSING_REQUIRED — Step {step+1} continues...")
-                            break  # Step will continue
+                            continue  # Step will continue
+                            # (no lifeline consumed)
                         elif result.startswith("[sandbox error:"):
                             success = False
                             self.context.final_answer = "FINAL_ANSWER: [Execution failed]"

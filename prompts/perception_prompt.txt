@@ -21,10 +21,11 @@ You are a perception engine helping an AI agent to decide which MCP server(s) ar
   "selected_servers": ["server1", "server2"]
 }}
 
-✅ Rules:
-- selected_servers must match server IDs exactly (e.g., server1, server2).
+✅ Strict Rules:
+- selected_servers must match server IDs exactly (e.g., server1, server2) as provided to you.
 - If none are a clear match, select all servers.
 - Keep output short and clean.
+- No explanation, no narration — only valid JSON.
 
 Now generate the output:
 """

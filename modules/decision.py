@@ -57,7 +57,6 @@ async def generate_plan(
             log("plan", "⚠️ LLM did not return a valid solve(). Defaulting to FINAL_ANSWER")
             return "FINAL_ANSWER: [Could not generate valid solve()]"
 
-
     except Exception as e:
         log("plan", f"⚠️ Planning failed: {e}")
         return "FINAL_ANSWER: [unknown]"

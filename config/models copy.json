@@ -1,0 +1,96 @@
+{
+  "defaults": {
+    "text_generation": "gemini",
+    "embedding": "nomic"
+  },
+  "models": {
+    "gemini": {
+      "type": "gemini",
+      "model": "gemini-2.0-flash",
+      "embedding_model": "models/embedding-001",
+      "api_key_env": "GEMINI_API_KEY"
+    },
+    "phi4": {
+      "type": "ollama",
+      "model": "phi4",
+      "embedding_model": "phi4",
+      "url": {
+        "generate": "http://localhost:11434/api/generate",
+        "embed": "http://localhost:11434/api/embeddings"
+      }
+    },
+    "gemma3:12b": {
+      "type": "ollama",
+      "model": "gemma3:12b",
+      "embedding_model": "gemma3:12b",
+      "url": {
+        "generate": "http://localhost:11434/api/generate",
+        "embed": "http://localhost:11434/api/embeddings"
+      }
+    },
+    "gemma3:4b": {
+      "type": "ollama",
+      "model": "gemma3:4b",
+      "embedding_model": "gemma3:4b",
+      "url": {
+        "generate": "http://localhost:11434/api/generate",
+        "embed": "http://localhost:11434/api/embeddings"
+      }
+    },
+    "gemma3:1b": {
+      "type": "ollama",
+      "model": "gemma3:1b",
+      "embedding_model": "gemma3:1b",
+      "url": {
+        "generate": "http://localhost:11434/api/generate",
+        "embed": "http://localhost:11434/api/embeddings"
+      }
+    },
+    "llama3.1:8b": {
+      "type": "ollama",
+      "model": "llama3.1:8b",
+      "embedding_model": "llama3.1:8b",
+      "url": {
+        "generate": "http://localhost:11434/api/generate",
+        "embed": "http://localhost:11434/api/embeddings"
+      }
+    },
+
+    "qwen2.5:32b-instruct-q4_0": {
+      "type": "ollama",
+      "model": "qwen2.5:32b-instruct-q4_0",
+      "embedding_model": "qwen2.5:32b-instruct-q4_0 ",
+      "url": {
+        "generate": "http://localhost:11434/api/generate",
+        "embed": "http://localhost:11434/api/embeddings"
+      }
+    },
+    "llama3.2": {
+      "type": "ollama",
+      "model": "hf.co/bartowski/Llama-3.2-1B-Instruct-GGUF:latest",
+      "embedding_model": "hf.co/bartowski/Llama-3.2-1B-Instruct-GGUF:latest",
+      "url": {
+        "generate": "http://localhost:11434/api/generate",
+        "embed": "http://localhost:11434/api/embeddings"
+      }
+    },
+    "qwen3:4b": {
+      "type": "qwen",
+      "model": "qwen3:4b",
+      "embedding_model": "qwen3:4b",
+      "url": {
+        "generate": "http://localhost:11434/api/generate",
+        "embed": "http://localhost:11434/api/embeddings"
+      }
+    },
+
+    "nomic": {
+      "type": "ollama",
+      "model": "nomic-embed-text:v1.5",
+      "embedding_dimension": 768,
+      "url": {
+        "embed": "http://localhost:11434/api/embeddings"
+      }
+    }
+  }
+}

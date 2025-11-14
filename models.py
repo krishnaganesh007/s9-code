@@ -172,3 +172,7 @@ class FilePathInput(BaseModel):
 
 class MarkdownOutput(BaseModel):
     markdown: str
+
+class InterpretDocuments(BaseModel):
+    query: str
+    extracted_content: str

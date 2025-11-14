@@ -146,4 +146,6 @@ You must return the result immediately using 'FINAL_ANSWER:' if you got the resu
 Some times you WILL need to further process the results, like after looking at document, search or webpage parsed, summarizing it. Use 'FURTHER_PROCESSING_REQUIRED:' in those cases.
 Use chaining only if necessary, but never plan more than 1 tool call.
 
+STRICT RULE: No explanation, no narration — only valid Python code.
+
 """

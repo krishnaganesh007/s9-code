@@ -28,20 +28,26 @@ class MemoryItem(BaseModel):
     success: Optional[bool] = None
     metadata: Optional[dict] = {}  # ✅ ADD THIS LINE BACK
 
-
+# This class manages session memory
+# Only in-session memory is stored here
+# Once the session is over, memory can be archived elsewhere if needed but is not stored here
 class MemoryManager:
     """Manages session memory (read/write/append)."""
 
+    # Initializes, creates memory file otherwise loads existing memory if available
     def __init__(self, session_id: str, memory_dir: str = "memory"):
-        self.session_id = session_id
-        self.memory_dir = memory_dir
+        self.session_id = session_id # e.g., "2024/06/15/session-1712345678-abc123"
+        self.memory_dir = memory_dir # e.g., "memory/"
         self.memory_path = os.path.join('memory', session_id.split('-')[0], session_id.split('-')[1], session_id.split('-')[2], f'session-{session_id}.json')
-        self.items: List[MemoryItem] = []
+        # e.g., "memory/2024/06/15/session-1712345678-abc123.json"
+        self.items: List[MemoryItem] = [] # What does 
 
         if not os.path.exists(self.memory_dir):
-            os.makedirs(self.memory_dir)
+            os.makedirs(self.memory_dir) # Create memory directory if it doesn't exist
 
-        self.load()
+        self.load() # Load existing memory from file if available
+        # How will it know if that file exists? -> It checks if the file at self.memory_path exists using os.path.exists().
+        # Function is declared below
 
     def load(self):
         if os.path.exists(self.memory_path):

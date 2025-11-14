@@ -12,6 +12,14 @@ ROOT = Path(__file__).parent.parent
 MODELS_JSON = ROOT / "config" / "models.json"
 PROFILE_YAML = ROOT / "config" / "profiles.yaml"
 
+# Objective is simple:
+# # 1. Load model configurations from models.json
+# 2. Load profile from profiles.yaml to determine which model to use
+# 3. Initialize the appropriate model client (Gemini or Ollama)
+# 4. Provide a unified method to generate text based on the selected model
+# Where are the generate embeddings methods? -> They can be added similarly to generate_text if needed in the future.
+# But without that, we cannot use the memory module fully, right? -> Correct, without embedding generation, certain memory functionalities may be limited.
+
 class ModelManager:
     def __init__(self):
         self.config = json.loads(MODELS_JSON.read_text())
@@ -32,6 +40,9 @@ class ModelManager:
 
         elif self.model_type == "ollama":
             return self._ollama_generate(prompt)
+        
+        elif self.model_type == "qwen":
+            return self._qwen_generate(prompt)
 
         raise NotImplementedError(f"Unsupported model type: {self.model_type}")
 
@@ -57,3 +68,25 @@ class ModelManager:
         )
         response.raise_for_status()
         return response.json()["response"].strip()
+    
+    def _qwen_generate(self, prompt: str) -> str:
+        payload = {
+            "model": self.model_info["model"],
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": 0.7,
+                "top_p": 0.8,
+                "top_k": 20,
+                "min_p": 0,
+                "num_predict": 32768
+            }
+        }
+
+        response = requests.post(
+            self.model_info["url"]["generate"],
+            json=payload
+        )
+        response.raise_for_status()
+        return response.json()["response"].strip()
+

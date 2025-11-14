@@ -13,7 +13,7 @@ from pathlib import Path
 import requests
 from markitdown import MarkItDown
 import time
-from models import AddInput, AddOutput, SqrtInput, SqrtOutput, StringsToIntsInput, StringsToIntsOutput, ExpSumInput, ExpSumOutput, PythonCodeInput, PythonCodeOutput, UrlInput, FilePathInput, MarkdownInput, MarkdownOutput, ChunkListOutput, SearchDocumentsInput
+from models import AddInput, AddOutput, SqrtInput, SqrtOutput, StringsToIntsInput, StringsToIntsOutput, ExpSumInput, ExpSumOutput, PythonCodeInput, PythonCodeOutput, UrlInput, FilePathInput, MarkdownInput, MarkdownOutput, ChunkListOutput, SearchDocumentsInput, InterpretDocuments
 from tqdm import tqdm
 import hashlib
 from pydantic import BaseModel
@@ -30,10 +30,10 @@ mcp = FastMCP("Calculator")
 EMBED_URL = "http://localhost:11434/api/embeddings"
 OLLAMA_CHAT_URL = "http://localhost:11434/api/chat"
 OLLAMA_URL = "http://localhost:11434/api/generate"
-EMBED_MODEL = "nomic-embed-text"
-GEMMA_MODEL = "gemma3:12b"
-PHI_MODEL = "phi4:latest"
-QWEN_MODEL = "qwen2.5:32b-instruct-q4_0 "
+EMBED_MODEL = "nomic-embed-text:v1.5" # for text embeddings
+GEMMA_MODEL = "gemma3:12b" # for image captioning
+PHI_MODEL = "phi4:latest" # for chunk relation
+QWEN_MODEL = "qwen2.5:32b-instruct-q4_0 " # future use
 CHUNK_SIZE = 256
 CHUNK_OVERLAP = 40
 MAX_CHUNK_LENGTH = 512  # characters
@@ -63,29 +63,29 @@ def mcp_log(level: str, message: str) -> None:
 
 def are_related(chunk1: str, chunk2: str, index: int) -> bool:
     prompt = f"""
-You are helping to segment a document into topic-based chunks. Unfortunately, the sentences are mixed up.
+                You are helping to segment a document into topic-based chunks. Unfortunately, the sentences are mixed up.
 
-CHUNK 1: "{chunk1}"
-CHUNK 2: "{chunk2}"
+                CHUNK 1: "{chunk1}"
+                CHUNK 2: "{chunk2}"
 
-Should these two chunks appear in the **same paragraph or flow of writing**?
+                Should these two chunks appear in the **same paragraph or flow of writing**?
 
-Even if the subject changes slightly (e.g., One person to another), treat them as related **if they belong to the same broader context or topic** (like cricket, AI, or real estate). 
+                Even if the subject changes slightly (e.g., One person to another), treat them as related **if they belong to the same broader context or topic** (like cricket, AI, or real estate). 
 
-Also consider cues like continuity words (e.g., "However", "But", "Also") or references that link the sentences.
+                Also consider cues like continuity words (e.g., "However", "But", "Also") or references that link the sentences.
 
-Answer with:
-Yes – if the chunks should appear together in the same paragraph or section  
-No – if they are about different topics and should be separated
+                Answer with:
+                Yes – if the chunks should appear together in the same paragraph or section  
+                No – if they are about different topics and should be separated
 
-Just respond in one word (Yes or No), and do not provide any further explanation.
-"""
+                Just respond in one word (Yes or No), and do not provide any further explanation.
+                """
     print(f"\n🔍 Comparing chunk {index} and {index+1}")
     print(f"  Chunk {index} → {chunk1[:60]}{'...' if len(chunk1) > 60 else ''}")
     print(f"  Chunk {index+1} → {chunk2[:60]}{'...' if len(chunk2) > 60 else ''}")
 
     result = requests.post(OLLAMA_CHAT_URL, json={
-        "model": PHI_MODEL,
+        "model": GEMMA_MODEL, # PHI_MODEL,
         "messages": [{"role": "user", "content": prompt}],
         "stream": False
     })
@@ -164,6 +164,33 @@ def caption_image(img_url_or_path: str) -> str:
         return f"[Image could not be processed: {img_url_or_path}]"
 
 
+@mcp.tool()
+async def answer_query_with_context(input: InterpretDocuments) -> str:
+    """Answer user query using extracted text context. Usage: input={"input" = {"user_query": "your question", "extracted_text": "content"}} result = await mcp.call_tool('answer_query_with_context', input)"""
+    
+    try:
+        from modules.model_manager import ModelManager
+        mcp_log("LLM_ANSWER", f"Query: {InterpretDocuments.user_query[:80]}...")
+        
+        model = ModelManager()
+        
+        prompt = f"""You are a helpful assistant. Answer the user's question based on the provided context.
+
+                    Context:
+                    {InterpretDocuments.extracted_text}
+
+                    User Question:
+                    {InterpretDocuments.user_query}
+
+                    Provide a clear, concise answer based only on the information in the context."""
+        
+        response = await model.generate_text(prompt)
+        
+        mcp_log("LLM_ANSWER", f"✓ Response: {len(response)} chars")
+        return response
+        
+    except Exception as e:
+        return f"ERROR: Failed to get LLM answer: {str(e)}"
 
 
 
@@ -248,20 +275,20 @@ def semantic_merge(text: str) -> list[str]:
         chunk_text = " ".join(chunk_words).strip()
 
         prompt = f"""
-You are a markdown document segmenter.
+                    You are a markdown document segmenter.
 
-Here is a portion of a markdown document:
+                    Here is a portion of a markdown document:
 
----
-{chunk_text}
----
+                    ---
+                    {chunk_text}
+                    ---
 
-If this chunk clearly contains **more than one distinct topic or section**, reply ONLY with the **second part**, starting from the first sentence or heading of the new topic.
+                    If this chunk clearly contains **more than one distinct topic or section**, reply ONLY with the **second part**, starting from the first sentence or heading of the new topic.
 
-If it's only one topic, reply with NOTHING.
+                    If it's only one topic, reply with NOTHING.
 
-Keep markdown formatting intact.
-"""
+                    Keep markdown formatting intact.
+                    """
 
         try:
             result = requests.post(OLLAMA_CHAT_URL, json={
@@ -302,6 +329,24 @@ Keep markdown formatting intact.
 
 
 
+@mcp.tool()
+def extract_webpage(input: UrlInput) -> MarkdownOutput:
+    """Extract and convert webpage content to markdown. Usage: extract_webpage|input={"url": "https://example.com"}"""
+
+    downloaded = trafilatura.fetch_url(input.url)
+    if not downloaded:
+        return MarkdownOutput(markdown="Failed to download the webpage.")
+
+    markdown = trafilatura.extract(
+        downloaded,
+        include_comments=False,
+        include_tables=True,
+        include_images=True,
+        output_format='markdown'
+    ) or ""
+
+    markdown = replace_images_with_captions(markdown)
+    return MarkdownOutput(markdown=markdown)
 
 
 

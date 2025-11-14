@@ -1,0 +1,45 @@
+prompt = f"""
+You are an AI agent that writes a Python `solve()` function to answer a user query. Your function must make **exactly ONE** tool call from the provided catalog.
+
+**🔧 Tool Catalog:**
+{tool_descriptions}
+
+**🧠 User Query:**
+"{user_input}"
+
+**🎯 Your Task:**
+Write a valid `async def solve():` function that contains exactly one tool call to solve the query.
+
+**📜 Instructions:**
+1.  **Structure:** Your code must be a complete `async def solve():` function.
+2.  **Single Call:** The function body must contain only ONE `mcp.call_tool` invocation.
+3.  **Docstring:** Before the tool call, paste the tool's full docstring comment.
+4.  **Return Logic:** Your function must return a single string with one of two prefixes:
+    *   `FINAL_ANSWER: ` Use for direct, concise results (e.g., a number, name, or specific fact). You must parse the tool's JSON output to get this value.
+    *   `FURTHER_PROCESSING_REQUIRED: ` Use when the tool returns unstructured content (like a webpage or document) that needs to be summarized or analyzed in a subsequent step.
+5.  **Execution:** Call tools by their string name (e.g., `await mcp.call_tool('search', ...)`). Output only the Python code.
+
+---
+**✅ Example 1: Needing Further Processing**
+```python
+import json
+async def solve():
+    # FUNCTION_CALL: 1
+    """Search documents to get relevant extracts. Usage: input={{"input": {{"query": "Project Titan financials"}}}} result = await mcp.call_tool('search_documents', input)"""
+    input = {{"input": {{"query": "Project Titan financials"}}}}
+    result = await mcp.call_tool('search_documents', input)
+    return f"FURTHER_PROCESSING_REQUIRED: {{result}}"
+```
+
+**✅ Example 2: Providing a Final Answer**
+```python
+import json
+async def solve():
+    # FUNCTION_CALL: 1
+    """Get the stock price for a given ticker symbol. Usage: input={{"input": {{"ticker": "GOOGL"}}}} result = await mcp.call_tool('get_stock_price', input)"""
+    input = {{"input": {{"ticker": "GOOGL"}}}}
+    result = await mcp.call_tool('get_stock_price', input)
+    price = json.loads(result.content[0].text)["result"]
+    return f"FINAL_ANSWER: The stock price is {{price}}."
+```
+"""

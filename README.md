@@ -35,20 +35,6 @@ It enables safe, auditable execution of LLM-generated plans (`solve()` functions
 ## 🏗 Hand-Drawn Architecture
 ![hand-drawn-architecture](/architecture.jpg)
 
-## 🏗 Architecture
-At a high level, the agent operates in a **Perception → Planning → Action → Memory → Evaluation** loop.
-
-User Query  
-↓  
-Perception (LLM interprets intent, selects tool servers)  
-↓  
-Planning (LLM creates `solve()` using available tools)  
-↓  
-Sandbox (executes code securely)  
-↓  
-Memory (stores steps & results)  
-↓  
-Final Answer  
 
 ## 🛠 Installation
 ### Prerequisites

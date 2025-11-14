@@ -33,7 +33,7 @@ It enables safe, auditable execution of LLM-generated plans (`solve()` functions
 - Credits
 
 ## 🏗 Hand-Drawn Architecture
-![hand-drawn-architecture](/architecture.heic)
+![hand-drawn-architecture](/architecture.jpg)
 
 ## 🏗 Architecture
 At a high level, the agent operates in a **Perception → Planning → Action → Memory → Evaluation** loop.
